@@ -11,9 +11,10 @@ volumes:
 services:
 
   prometheus:
-    image: prom/prometheus:v2.25.0
+    image: prom/prometheus:v2.17.1
     container_name: prometheus
     volumes:
+      - /etc/stunnel/:/etc/prometheus/tls
       - ./prometheus:/etc/prometheus
       - prometheus_data:/prometheus
     command:
@@ -24,6 +25,8 @@ services:
       - '--storage.tsdb.retention.time=200h'
       - '--web.enable-lifecycle'
     restart: unless-stopped
+    environment:
+      - CADVISOR="cadvisor"
     expose:
       - 9090
     networks:
@@ -39,9 +42,12 @@ services:
     command:
       - '--config.file=/etc/alertmanager/config.yml'
       - '--storage.path=/alertmanager'
+      # - '--web.external-url=https://localhost:9094'
     restart: unless-stopped
     expose:
       - 9093
+    ports:
+      - 127.0.0.1:9099:9093
     networks:
       - monitor-net
     labels:
@@ -109,26 +115,31 @@ services:
     restart: unless-stopped
     expose:
       - 9091
+    #command: --web.listen-address=localhost:9091
+    volumes:
+      - /etc/stunnel/:/pushgateway
+    ports:
+       - 127.0.0.1:9092:9091
     networks:
       - monitor-net
     labels:
       org.label-schema.group: "monitoring"
 
   caddy:
-    image: stefanprodan/caddy
-    container_name: caddy
-    ports:
-      - "3000:3000"
-      - "9090:9090"
-      - "9093:9093"
-      - "9091:9091"
-    volumes:
-      - ./caddy:/etc/caddy
-    environment:
-      - ADMIN_USER=${ADMIN_USER:-admin}
-      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-admin}
-    restart: unless-stopped
-    networks:
-      - monitor-net
-    labels:
-      org.label-schema.group: "monitoring"
+     image: stefanprodan/caddy
+     container_name: caddy
+     ports:
+       - "3000:3000"
+       - "9090:9090"
+       - "9093:9093"
+       - "9096:9091"
+     volumes:
+       - ./caddy:/etc/caddy
+     environment:
+       - ADMIN_USER=${ADMIN_USER:-admin}
+       - ADMIN_PASSWORD=${ADMIN_PASSWORD:-admin}
+     restart: unless-stopped
+     networks:
+       - monitor-net
+     labels:
+       org.label-schema.group: "monitoring"
