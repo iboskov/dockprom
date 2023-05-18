@@ -35,7 +35,7 @@ services:
       org.label-schema.group: "monitoring"
 
   alertmanager:
-    image: prom/alertmanager:v0.25.0
+    image: prom/alertmanager:v0.21.0
     container_name: alertmanager
     volumes:
       - ./alertmanager:/etc/alertmanager
@@ -54,7 +54,7 @@ services:
       org.label-schema.group: "monitoring"
 
   nodeexporter:
-    image: prom/node-exporter:v1.5.0
+    image: prom/node-exporter:v1.1.1
     container_name: nodeexporter
     volumes:
       - /proc:/host/proc:ro
@@ -64,7 +64,7 @@ services:
       - '--path.procfs=/host/proc'
       - '--path.rootfs=/rootfs'
       - '--path.sysfs=/host/sys'
-      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+      - '--collector.filesystem.ignored-mount-points=^/(sys|proc|dev|host|etc)($$|/)'
     restart: unless-stopped
     expose:
       - 9100
@@ -74,14 +74,11 @@ services:
       org.label-schema.group: "monitoring"
 
   cadvisor:
-    image: gcr.io/cadvisor/cadvisor:v0.47.1
+    image: gcr.io/cadvisor/cadvisor:v0.38.8
     container_name: cadvisor
-    privileged: true
-    devices:
-      - /dev/kmsg:/dev/kmsg
     volumes:
       - /:/rootfs:ro
-      - /var/run:/var/run:ro
+      - /var/run:/var/run:rw
       - /sys:/sys:ro
       - /var/lib/docker:/var/lib/docker:ro
       #- /cgroup:/cgroup:ro #doesn't work on MacOS only for Linux
@@ -94,7 +91,7 @@ services:
       org.label-schema.group: "monitoring"
 
   grafana:
-    image: grafana/grafana:9.5.1
+    image: grafana/grafana:7.4.2
     container_name: grafana
     volumes:
       - grafana_data:/var/lib/grafana
@@ -113,7 +110,7 @@ services:
       org.label-schema.group: "monitoring"
 
   pushgateway:
-    image: prom/pushgateway:v1.5.1
+    image: prom/pushgateway:v1.4.0
     container_name: pushgateway
     restart: unless-stopped
     expose:
@@ -127,22 +124,20 @@ services:
       org.label-schema.group: "monitoring"
 
   caddy:
-    image: caddy:2.6.4
-    container_name: caddy
-    ports:
-      - "3000:3000"
-      - "8080:8080"
-      - "9090:9090"
-      - "9093:9093"
-      - "9091:9091"
-    volumes:
-      - ./caddy:/etc/caddy
-    environment:
-      - ADMIN_USER=${ADMIN_USER:-admin}
-      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-admin}
-      - ADMIN_PASSWORD_HASH=${ADMIN_PASSWORD_HASH:-$2a$14$1l.IozJx7xQRVmlkEQ32OeEEfP5mRxTpbDTCTcXRqn19gXD8YK1pO}
-    restart: unless-stopped
-    networks:
-      - monitor-net
-    labels:
-      org.label-schema.group: "monitoring"
+     image: stefanprodan/caddy
+     container_name: caddy
+     ports:
+       - "3000:3000"
+       - "9090:9090"
+       - "9093:9093"
+       - "9096:9091"
+     volumes:
+       - ./caddy:/etc/caddy
+     environment:
+       - ADMIN_USER=${ADMIN_USER:-admin}
+       - ADMIN_PASSWORD=${ADMIN_PASSWORD:-admin}
+     restart: unless-stopped
+     networks:
+       - monitor-net
+     labels:
+       org.label-schema.group: "monitoring"
