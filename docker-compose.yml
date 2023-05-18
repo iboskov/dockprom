@@ -116,10 +116,8 @@ services:
     expose:
       - 9091
     #command: --web.listen-address=localhost:9091
-    volumes:
-      - /etc/stunnel/:/pushgateway
     ports:
-       - 127.0.0.1:9092:9091
+       - 9092:9091
     networks:
       - monitor-net
     labels:

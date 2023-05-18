@@ -29,6 +29,11 @@ scrape_configs:
     static_configs:
       - targets: ['prometheus:9090']
 
+  - job_name: 'apache-exporter'
+    scrape_interval: 10s
+    static_configs:
+      - targets: ['localhost:9998']
+
 
   - job_name: 'dms'
     scrape_interval: 10s
@@ -39,12 +44,12 @@ scrape_configs:
   - job_name: 'pushgateway'
     scrape_interval: 10s
     honor_labels: true
-    scheme: https
-    tls_config:
-      ca_file: /etc/prometheus/tls/ca.crt
-      cert_file: /etc/prometheus/tls/prom_server.crt
-      key_file: /etc/prometheus/tls/prom_server_nopass.key
-      server_name: pushgateway
+    # scheme: https
+    # tls_config:
+    #   ca_file: /etc/prometheus/tls/ca.crt
+    #   cert_file: /etc/prometheus/tls/prom_server.crt
+    #   key_file: /etc/prometheus/tls/prom_server_nopass.key
+    #   server_name: pushgateway
     #   ca_file: /home/ivan/stunnel.pem
     static_configs:
       - targets: ['pushgateway:9092']
