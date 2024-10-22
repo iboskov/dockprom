@@ -11,7 +11,7 @@ volumes:
 services:
 
   prometheus:
-    image: prom/prometheus:v2.17.1
+    image: prom/prometheus:v2.55.0
     container_name: prometheus
     volumes:
       - /etc/stunnel/:/etc/prometheus/tls
